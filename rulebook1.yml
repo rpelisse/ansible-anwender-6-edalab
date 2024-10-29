@@ -1,0 +1,14 @@
+---
+- name: EDA lab
+  hosts: all
+  sources:
+    - ansible.eda.url_check:
+        urls:
+          - http://localhost:8080/
+        delay: 10
+  rules:
+    - name: Restart Wildfly if url is not reachable
+      condition: event.url_check.status == "down"
+      action:
+        run_playbook:
+          name: restart_wildfly.yml

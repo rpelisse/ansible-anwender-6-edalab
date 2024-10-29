@@ -1,0 +1,15 @@
+---
+- name: Check webserver
+  hosts: all
+  sources:
+    - ansible.eda.url_check:
+        urls:
+          - http://localhost:8080/info-1.2
+        delay: 10
+
+  rules:
+    - name: Restart Wildfly if url is not reachable
+      condition: event.url_check.status == "down" and false
+      action:
+        run_playbook:
+          name: restart_wildfly.yml
