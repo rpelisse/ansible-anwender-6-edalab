@@ -244,3 +244,7 @@ From there, we can see there is a *is search* operator that will allow us to che
 And voilà!
 
 We know can trigger a playbook in case a Out of Memory is detected in the server!
+
+---
+
+The end!
