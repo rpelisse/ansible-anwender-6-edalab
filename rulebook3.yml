@@ -1,0 +1,14 @@
+---
+- name: EDA lab
+  hosts: all
+  sources:
+    - ansible.eda.journald:
+        match: ALL
+  rules:
+    - name: Match on Java Out of Memory error
+      condition: event.journald.message is search("java.lang.OutOfMemoryError", ignorecase=false)
+      action:
+        run_playbook:
+          name: oom.yml
+          extra_vars:
+            log_entry: "{{ event.journald.message }}"

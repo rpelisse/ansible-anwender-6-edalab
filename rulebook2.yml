@@ -1,5 +1,5 @@
 ---
-- name: Check webserver
+- name: EDA lab
   hosts: all
   sources:
     - ansible.eda.url_check:
