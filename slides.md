@@ -205,6 +205,42 @@ So... How do can we do it?
 ---
 ## journald
 
-While, it's not documented yet (as the time of this presentation), there is a [journald source]() available. As the [middleware_automation.wildfly collection]() integrates Wildfly into systemd, it also means the main logfile of the app server is echoed into journald, so we can try to leverage this source indeed:
+While, it's not documented yet (as the time of this presentation), there is a [journald source](https://github.com/ansible/event-driven-ansible/blob/main/extensions/eda/plugins/event_source/journald.py) available. As the [middleware_automation.wildfly collection](https://github.com/ansible-middleware/wildfly) integrates Wildfly into systemd, it also means the main logfile of the app server is echoed into journald, so we can try to leverage this source indeed.
 
-TODO: fail with file_check, move to journald
+However, as we lack documentation, we need first to have an idea of the structure of the event being returned by this source, so let's just catch and print any of them:
+
+```
+  sources:
+      - ansible.eda.journald:
+              match: ALL
+  rules:
+      - name: Match all on journald
+        condition: True
+        action:
+          print_event:
+            pretty: true
+```
+
+---
+## Detecting OOM using conditions
+
+As you can see the structure returns is immensily rich! We have plenty of informations available to us. The one we need is the message itself, which we can access using the **journald.message** attribute of the structure. Now we need to have a condition detecting when the event signals the apparition of a Java Out of Memory error.
+
+To do so, we need first to refers to the available documentation on [conditions](https://ansible.readthedocs.io/projects/rulebook/en/stable/conditions.html).
+
+From there, we can see there is a *is search* operator that will allow us to check for OOM:
+
+```
+  rules:
+      - name: Detect Out of Memory erros in journald
+        condition: event.journald.message is search("java.lang.OutOfMemoryError", ignorecase=false)
+        action:
+          run_playbook:
+            name: oom.yml
+            extra_vars:
+              triggeredBy: "{{ event }}"
+...
+
+And voilà!
+
+We know can trigger a playbook in case a Out of Memory is detected in the server!
